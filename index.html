@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DFA Minimization — Interactive Visualizer</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&family=Crimson+Pro:ital,wght@0,400;1,400&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- ═══════════════════════════════ HEADER ═══════════════════════════════ -->
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-symbol">Σ</span>
+        <div class="logo-text">
+          <span class="logo-title">DFA Minimization</span>
+          <span class="logo-sub">Theory of Computation</span>
+        </div>
+      </div>
+
+      <nav class="page-toggle">
+        <button class="toggle-btn active" id="btn-visualizer" onclick="switchPage('visualizer')">
+          <span class="toggle-icon">⊙</span> Visualizer
+        </button>
+        <div class="toggle-divider"></div>
+        <button class="toggle-btn" id="btn-theory" onclick="switchPage('theory')">
+          <span class="toggle-icon">∂</span> Theory
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ══════════════════════════ VISUALIZER PAGE ═══════════════════════════ -->
+  <main id="page-visualizer" class="page active">
+
+    <aside class="input-panel">
+      <div class="panel-header">
+        <h2>DFA Configuration</h2>
+        <p class="panel-sub">Define your automaton below</p>
+      </div>
+
+      <!-- States -->
+      <div class="form-section">
+        <label class="form-label">States <span class="hint">(comma-separated)</span></label>
+        <input type="text" id="input-states" class="form-input" placeholder="q0, q1, q2, q3, q4" value="q0,q1,q2,q3,q4" />
+      </div>
+
+      <!-- Alphabet -->
+      <div class="form-section">
+        <label class="form-label">Alphabet <span class="hint">(comma-separated)</span></label>
+        <input type="text" id="input-alphabet" class="form-input" placeholder="a, b" value="a,b" />
+      </div>
+
+      <!-- Start State -->
+      <div class="form-section">
+        <label class="form-label">Start State</label>
+        <input type="text" id="input-start" class="form-input" placeholder="q0" value="q0" />
+      </div>
+
+      <!-- Accept States -->
+      <div class="form-section">
+        <label class="form-label">Accept States <span class="hint">(comma-separated)</span></label>
+        <input type="text" id="input-accept" class="form-input" placeholder="q3, q4" value="q3,q4" />
+      </div>
+
+      <!-- Transition Table -->
+      <div class="form-section">
+        <label class="form-label">Transition Table</label>
+        <div id="transition-table-wrapper"></div>
+        <button class="btn-secondary" onclick="buildTransitionTable()">↺ Rebuild Table</button>
+      </div>
+
+      <!-- Load Examples -->
+      <div class="form-section">
+        <label class="form-label">Load Example</label>
+        <div class="example-btns">
+          <button class="btn-example" onclick="loadExample(0)">Example 1</button>
+          <button class="btn-example" onclick="loadExample(1)">Example 2</button>
+          <button class="btn-example" onclick="loadExample(2)">Example 3</button>
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="startMinimization()">Minimize DFA →</button>
+      <button class="btn-reset" onclick="resetAll()">Reset</button>
+    </aside>
+
+    <!-- Centre visualisation area -->
+    <section class="viz-area">
+
+      <!-- Graph canvas -->
+      <div class="graph-container">
+        <div class="graph-header">
+          <span id="graph-title">Original DFA</span>
+          <div class="graph-controls">
+            <button class="ctrl-btn" onclick="showGraph('original')" id="gctrl-original">Original</button>
+            <button class="ctrl-btn" onclick="showGraph('minimized')" id="gctrl-minimized">Minimized</button>
+          </div>
+        </div>
+        <canvas id="dfa-canvas" width="680" height="420"></canvas>
+        <div id="canvas-empty" class="canvas-empty">
+          <span class="empty-icon">⊘</span>
+          <p>Configure your DFA and press <strong>Minimize DFA</strong> to begin</p>
+        </div>
+      </div>
+
+      <!-- Steps panel -->
+      <div class="steps-panel">
+        <div class="steps-header">
+          <h3>Minimization Steps</h3>
+          <div class="step-nav">
+            <button class="nav-btn" id="btn-prev" onclick="prevStep()" disabled>‹ Prev</button>
+            <span id="step-counter" class="step-counter">—</span>
+            <button class="nav-btn" id="btn-next" onclick="nextStep()" disabled>Next ›</button>
+          </div>
+        </div>
+        <div id="steps-content" class="steps-content">
+          <div class="step-empty">Run the minimization to see step-by-step partitions.</div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Partition table area -->
+    <section class="partition-area" id="partition-area" style="display:none">
+      <h3 class="partition-title">Partition Refinement Table</h3>
+      <div id="partition-table-container"></div>
+
+      <div class="result-box" id="result-box" style="display:none">
+        <h4>Minimization Result</h4>
+        <div id="result-content"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ════════════════════════════ THEORY PAGE ════════════════════════════ -->
+  <main id="page-theory" class="page">
+    <div class="theory-wrapper">
+
+      <nav class="theory-toc">
+        <h3>Contents</h3>
+        <ul>
+          <li><a href="#t1">1. What is a DFA?</a></li>
+          <li><a href="#t2">2. Why Minimize?</a></li>
+          <li><a href="#t3">3. Distinguishable States</a></li>
+          <li><a href="#t4">4. Myhill–Nerode Theorem</a></li>
+          <li><a href="#t5">5. Table-Filling Algorithm</a></li>
+          <li><a href="#t6">6. Hopcroft's Algorithm</a></li>
+          <li><a href="#t7">7. Worked Example</a></li>
+          <li><a href="#t8">8. Complexity</a></li>
+        </ul>
+      </nav>
+
+      <article class="theory-content">
+
+        <div class="theory-hero">
+          <h1>DFA Minimization</h1>
+          <p class="theory-tagline">Reducing finite automata to their simplest equivalent form</p>
+        </div>
+
+        <section class="theory-section" id="t1">
+          <h2><span class="sec-num">§1</span> What is a Deterministic Finite Automaton?</h2>
+          <p>A <em>Deterministic Finite Automaton</em> (DFA) is a 5-tuple <span class="math">M = (Q, Σ, δ, q₀, F)</span> where:</p>
+          <div class="definition-box">
+            <ul class="def-list">
+              <li><span class="math">Q</span> — a finite, non-empty set of <strong>states</strong></li>
+              <li><span class="math">Σ</span> — a finite set called the <strong>alphabet</strong></li>
+              <li><span class="math">δ : Q × Σ → Q</span> — the <strong>transition function</strong></li>
+              <li><span class="math">q₀ ∈ Q</span> — the <strong>start state</strong></li>
+              <li><span class="math">F ⊆ Q</span> — the set of <strong>accept states</strong></li>
+            </ul>
+          </div>
+          <p>Given an input string <span class="math">w = a₁a₂…aₙ</span>, the DFA processes each symbol sequentially, transitioning between states. The string is <em>accepted</em> if the machine ends in an accept state; otherwise it is <em>rejected</em>.</p>
+        </section>
+
+        <section class="theory-section" id="t2">
+          <h2><span class="sec-num">§2</span> Why Minimize?</h2>
+          <p>Multiple DFAs can recognize exactly the same language. Among all such equivalent DFAs, there exists a unique (up to state renaming) <strong>minimum-state DFA</strong>. Minimization matters because:</p>
+          <div class="callout-grid">
+            <div class="callout">
+              <span class="callout-icon">⚡</span>
+              <h4>Performance</h4>
+              <p>Fewer states mean faster transitions in lexers, pattern matchers, and network filters.</p>
+            </div>
+            <div class="callout">
+              <span class="callout-icon">◈</span>
+              <h4>Uniqueness</h4>
+              <p>The minimal DFA is a canonical representation, enabling equality testing of languages.</p>
+            </div>
+            <div class="callout">
+              <span class="callout-icon">∿</span>
+              <h4>Insight</h4>
+              <p>Merging redundant states clarifies the automaton's logical structure.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="theory-section" id="t3">
+          <h2><span class="sec-num">§3</span> Distinguishable States</h2>
+          <p>Two states <span class="math">p, q ∈ Q</span> are <strong>distinguishable</strong> if there exists a string <span class="math">w ∈ Σ*</span> such that exactly one of <span class="math">δ*(p, w)</span> and <span class="math">δ*(q, w)</span> is in <span class="math">F</span>. Conversely, they are <strong>indistinguishable</strong> (or equivalent) if no such string exists.</p>
+          <div class="theorem-box">
+            <span class="theorem-label">Base Case</span>
+            <p>Any accept state is distinguishable from any non-accept state (the empty string <span class="math">ε</span> witnesses this).</p>
+          </div>
+          <div class="theorem-box">
+            <span class="theorem-label">Inductive Step</span>
+            <p>States <span class="math">p</span> and <span class="math">q</span> are distinguishable if there exists <span class="math">a ∈ Σ</span> such that <span class="math">δ(p,a)</span> and <span class="math">δ(q,a)</span> are distinguishable.</p>
+          </div>
+        </section>
+
+        <section class="theory-section" id="t4">
+          <h2><span class="sec-num">§4</span> Myhill–Nerode Theorem</h2>
+          <p>The Myhill–Nerode theorem gives a precise characterisation of regular languages and their minimal automata.</p>
+          <div class="definition-box">
+            <p><strong>Definition.</strong> For a language <span class="math">L ⊆ Σ*</span>, define the equivalence relation <span class="math">≡_L</span> on strings: <span class="math">x ≡_L y</span> iff for every <span class="math">z ∈ Σ*</span>, <span class="math">xz ∈ L ⟺ yz ∈ L</span>.</p>
+          </div>
+          <div class="theorem-box">
+            <span class="theorem-label">Theorem (Myhill–Nerode)</span>
+            <p>A language <span class="math">L</span> is regular if and only if <span class="math">≡_L</span> has finitely many equivalence classes. Moreover, the number of equivalence classes equals the number of states in the minimum DFA for <span class="math">L</span>.</p>
+          </div>
+          <p>Each equivalence class corresponds to exactly one state of the minimal DFA. This is the theoretical foundation underlying all minimization algorithms.</p>
+        </section>
+
+        <section class="theory-section" id="t5">
+          <h2><span class="sec-num">§5</span> Table-Filling Algorithm</h2>
+          <p>Also called the <em>mark-distinguishable-pairs</em> algorithm, this is the procedure implemented in this visualizer.</p>
+
+          <div class="algo-box">
+            <div class="algo-title">Algorithm: Table-Filling (Mark) Method</div>
+            <ol class="algo-steps">
+              <li><strong>Construct</strong> a triangular table of all state pairs <span class="math">{p, q}</span> with <span class="math">p ≠ q</span>.</li>
+              <li><strong>Mark</strong> every pair <span class="math">{p, q}</span> where one is an accept state and the other is not.</li>
+              <li><strong>Repeat</strong> until no new marks:
+                <ol type="a">
+                  <li>For each unmarked pair <span class="math">{p, q}</span> and each symbol <span class="math">a ∈ Σ</span>:</li>
+                  <li>If <span class="math">{δ(p,a), δ(q,a)}</span> is already marked, mark <span class="math">{p, q}</span>.</li>
+                </ol>
+              </li>
+              <li><strong>Merge</strong> all unmarked (indistinguishable) pairs into single states.</li>
+              <li><strong>Construct</strong> the minimized DFA from the merged state classes.</li>
+            </ol>
+          </div>
+
+          <p>The time complexity of this algorithm is <span class="math">O(|Q|² · |Σ|)</span>, making it practical even for large automata.</p>
+        </section>
+
+        <section class="theory-section" id="t6">
+          <h2><span class="sec-num">§6</span> Hopcroft's Algorithm</h2>
+          <p>Hopcroft's algorithm (1971) achieves a superior time complexity of <span class="math">O(|Q| · |Σ| · log|Q|)</span> using a partition-refinement strategy.</p>
+          <div class="algo-box">
+            <div class="algo-title">Algorithm: Hopcroft's Partition Refinement</div>
+            <ol class="algo-steps">
+              <li><strong>Initialise</strong> partition <span class="math">P = {F, Q \ F}</span> (accept vs. non-accept states).</li>
+              <li><strong>Initialise</strong> worklist <span class="math">W = {F, Q \ F}</span>.</li>
+              <li><strong>While</strong> <span class="math">W ≠ ∅</span>:
+                <ol type="a">
+                  <li>Remove a set <span class="math">A</span> from <span class="math">W</span>.</li>
+                  <li>For each <span class="math">a ∈ Σ</span>, let <span class="math">X = δ⁻¹(A, a)</span> (states that transition into A on a).</li>
+                  <li>For each set <span class="math">Y ∈ P</span> that intersects both <span class="math">X</span> and <span class="math">Y \ X</span>:
+                    <ul>
+                      <li>Replace <span class="math">Y</span> with <span class="math">Y ∩ X</span> and <span class="math">Y \ X</span> in <span class="math">P</span>.</li>
+                      <li>Update worklist accordingly.</li>
+                    </ul>
+                  </li>
+                </ol>
+              </li>
+              <li><strong>Each block</strong> of the final partition <span class="math">P</span> becomes one state of the minimized DFA.</li>
+            </ol>
+          </div>
+        </section>
+
+        <section class="theory-section" id="t7">
+          <h2><span class="sec-num">§7</span> Worked Example</h2>
+          <p>Consider the DFA with states <span class="math">Q = {A, B, C, D, E}</span>, alphabet <span class="math">Σ = {0, 1}</span>, start state <span class="math">A</span>, and accept states <span class="math">C, D</span>:</p>
+
+          <div class="table-wrapper">
+            <table class="theory-table">
+              <thead>
+                <tr><th>State</th><th>on 0</th><th>on 1</th><th>Type</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>A</td><td>B</td><td>C</td><td>Start</td></tr>
+                <tr><td>B</td><td>B</td><td>D</td><td>—</td></tr>
+                <tr><td>C</td><td>B</td><td>C</td><td>Accept</td></tr>
+                <tr><td>D</td><td>B</td><td>C</td><td>Accept</td></tr>
+                <tr><td>E</td><td>B</td><td>C</td><td>—</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p><strong>Step 1 — Initial partition:</strong> <span class="math">P₀ = {{C, D}, {A, B, E}}</span></p>
+          <p><strong>Step 2 — Refine on symbol 1:</strong> All of A, B, E go to C or D (accept) on 1 — but check symbol 0: A→B, B→B, E→B. They behave identically on 0 as well. So {A, B, E} doesn't refine further.</p>
+          <p><strong>Step 3 — Check {C, D}:</strong> C on 0→B, D on 0→B; C on 1→C, D on 1→C. They are indistinguishable. Merge C and D.</p>
+          <p><strong>Result:</strong> Minimal DFA has 3 states: <span class="math">[A,B,E]</span> (non-accept) and <span class="math">[C,D]</span> (accept). Note: A and E are also merged — the minimal DFA has states <span class="math">{[A,E], [B], [C,D]}</span> after checking on symbol 1 (A→C/D, B→C/D, E→C/D — same; but on 0: A→B, B→B, E→B — same. On 1: A→C, B→D, both in [C,D] — same).</p>
+          <p>The minimal DFA collapses from 5 states to 3 states.</p>
+        </section>
+
+        <section class="theory-section" id="t8">
+          <h2><span class="sec-num">§8</span> Complexity Summary</h2>
+          <div class="table-wrapper">
+            <table class="theory-table">
+              <thead>
+                <tr><th>Algorithm</th><th>Time Complexity</th><th>Space Complexity</th><th>Practical Use</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Table-Filling</td><td class="math">O(|Q|² · |Σ|)</td><td class="math">O(|Q|²)</td><td>Teaching, small DFAs</td></tr>
+                <tr><td>Hopcroft's</td><td class="math">O(|Q| · |Σ| · log|Q|)</td><td class="math">O(|Q| · |Σ|)</td><td>Compilers, large DFAs</td></tr>
+                <tr><td>Brzozowski's</td><td class="math">O(2^|Q|) worst</td><td class="math">O(2^|Q|)</td><td>NFAs, subset construction</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="callout callout-note">
+            <span class="callout-icon">📎</span>
+            <p>The minimal DFA for a given regular language is <strong>unique up to isomorphism</strong> — any two minimal DFAs for the same language are identical except for state naming.</p>
+          </div>
+        </section>
+
+      </article>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>DFA Minimization Visualizer &nbsp;·&nbsp; Theory of Computation &nbsp;·&nbsp; Table-Filling Algorithm</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
