@@ -150,12 +150,12 @@ body {
 
 /* ── Pages ─────────────────────────────────────────── */
 .page { display: none; flex: 1; }
-.page.active { display: flex; flex-wrap: wrap; }
+.page.active { display: flex; flex-direction: row; align-items: stretch; min-height: calc(100vh - 67px); }
 
 /* ── Input Panel ───────────────────────────────────── */
 .input-panel {
   width: 290px;
-  min-width: 260px;
+  min-width: 290px;
   background: var(--paper-warm);
   border-right: 1px solid var(--paper-border);
   padding: 1.5rem 1.3rem;
@@ -163,10 +163,50 @@ body {
   flex-direction: column;
   gap: 0.2rem;
   overflow-y: auto;
-  max-height: calc(100vh - 67px);
-  position: static;
-  top: 67px;
+  flex-shrink: 0;
+  transition: width 0.28s ease, min-width 0.28s ease, padding 0.28s ease, opacity 0.2s ease;
 }
+
+/* Collapsed sidebar */
+.input-panel.collapsed {
+  width: 0;
+  min-width: 0;
+  padding: 0;
+  overflow: hidden;
+  opacity: 0;
+  border-right: none;
+}
+
+/* The arrow toggle button — flex sibling between panel and viz-area */
+.sidebar-toggle {
+  flex-shrink: 0;
+  width: 20px;
+  align-self: stretch;
+  background: var(--topaz);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 2px 0 6px rgba(0,0,0,0.12);
+  transition: background 0.15s;
+  z-index: 10;
+  padding: 0;
+}
+
+.sidebar-toggle:hover { background: var(--topaz-dark); }
+
+.sidebar-toggle .toggle-arrow {
+  display: inline-block;
+  transition: transform 0.28s ease;
+  line-height: 1;
+  font-size: 1.1rem;
+}
+
+/* When panel is collapsed, flip the arrow */
+.sidebar-collapsed .sidebar-toggle .toggle-arrow { transform: rotate(180deg); }
 
 .panel-header { margin-bottom: 0.8rem; }
 .panel-header h2 {
@@ -338,6 +378,8 @@ body {
   padding: 1.5rem;
   gap: 1.2rem;
   min-width: 0;
+  overflow-y: auto;
+  transition: all 0.28s ease;
 }
 
 .graph-container {
@@ -501,12 +543,13 @@ body {
   font-weight: 500;
 }
 
-/* ── Partition Table Area ───────────────────────────── */
+/* ── Partition Table Area (inside viz-area) ─────────── */
 .partition-area {
-  width: 100%;
-  padding: 1.5rem;
   background: var(--paper-warm);
-  border-top: 1px solid var(--paper-border);
+  border: 1px solid var(--paper-border);
+  border-radius: 4px;
+  padding: 1.2rem 1.5rem;
+  box-shadow: var(--shadow-sm);
 }
 
 .partition-title {
@@ -878,7 +921,30 @@ body {
 /* ── Responsive ─────────────────────────────────────── */
 @media (max-width: 900px) {
   #page-visualizer.active { flex-direction: column; }
-  .input-panel { width: 100%; max-height: none; position: static; border-right: none; border-bottom: 1px solid var(--paper-border); }
+  .input-panel {
+    width: 100%;
+    min-width: 100%;
+    max-height: none;
+    position: static;
+    border-right: none;
+    border-bottom: 1px solid var(--paper-border);
+  }
+  .input-panel.collapsed {
+    width: 0;
+    min-width: 0;
+    max-height: 0;
+    padding: 0;
+    border-bottom: none;
+  }
+  .sidebar-toggle {
+    right: 50%;
+    top: auto;
+    bottom: -14px;
+    transform: translateX(50%);
+    width: 48px;
+    height: 28px;
+    border-radius: 0 0 4px 4px;
+  }
   .theory-wrapper { grid-template-columns: 1fr; }
   .theory-toc { position: static; }
   .callout-grid { grid-template-columns: 1fr; }
