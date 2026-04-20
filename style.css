@@ -164,7 +164,7 @@ body {
   gap: 0.2rem;
   overflow-y: auto;
   max-height: calc(100vh - 67px);
-  position: sticky;
+  position: static;
   top: 67px;
 }
 
