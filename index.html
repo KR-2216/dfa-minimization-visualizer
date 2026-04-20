@@ -21,12 +21,12 @@
       </div>
 
       <nav class="page-toggle">
-        <button class="toggle-btn active" id="btn-visualizer" onclick="switchPage('visualizer')">
-          <span class="toggle-icon">⊙</span> Visualizer
-        </button>
-        <div class="toggle-divider"></div>
         <button class="toggle-btn" id="btn-theory" onclick="switchPage('theory')">
           <span class="toggle-icon">∂</span> Theory
+        </button>
+        <div class="toggle-divider"></div>
+        <button class="toggle-btn active" id="btn-visualizer" onclick="switchPage('visualizer')">
+          <span class="toggle-icon">⊙</span> Visualizer
         </button>
       </nav>
     </div>
@@ -35,7 +35,7 @@
   <!-- ══════════════════════════ VISUALIZER PAGE ═══════════════════════════ -->
   <main id="page-visualizer" class="page active">
 
-    <aside class="input-panel">
+    <aside class="input-panel" id="input-panel">
       <div class="panel-header">
         <h2>DFA Configuration</h2>
         <p class="panel-sub">Define your automaton below</p>
@@ -87,6 +87,9 @@
     </aside>
 
     <!-- Centre visualisation area -->
+    <button class="sidebar-toggle" id="sidebar-toggle" onclick="toggleSidebar()" title="Collapse panel">
+      <span class="toggle-arrow">&#8249;</span>
+    </button>
     <section class="viz-area">
 
       <!-- Graph canvas -->
@@ -120,17 +123,16 @@
         </div>
       </div>
 
-    </section>
-
-    <!-- Partition table area -->
-    <section class="partition-area" id="partition-area" style="display:none">
-      <h3 class="partition-title">Partition Refinement Table</h3>
-      <div id="partition-table-container"></div>
-
-      <div class="result-box" id="result-box" style="display:none">
-        <h4>Minimization Result</h4>
-        <div id="result-content"></div>
+      <!-- Partition table + result inside viz-area -->
+      <div class="partition-area" id="partition-area" style="display:none">
+        <h3 class="partition-title">Partition Refinement Table</h3>
+        <div id="partition-table-container"></div>
+        <div class="result-box" id="result-box" style="display:none">
+          <h4>Minimization Result</h4>
+          <div id="result-content"></div>
+        </div>
       </div>
+
     </section>
 
   </main>
